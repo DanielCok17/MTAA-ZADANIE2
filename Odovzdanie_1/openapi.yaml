@@ -1,0 +1,267 @@
+openapi: 3.0.0
+info:
+  title: MTAA - Autobazár API
+  description: Daniel Cok, Juraj Valíček
+  version: 0.1.0
+paths:
+  /api/autobazar/cars:
+    get:
+      tags:
+        - "Najnovšie/najstaršie inzeráty"
+      summary: Vráti zoznam najnovších inzerátov
+      description: >
+        Endpoint `GET /api/autobazar/cars` vracia pole záznamov vo formáte JSON. Každý záznam obsahuje tieto atribúty:
+
+          - `id` - unikátne identifikátor inzerátu
+          - `car_brand` - značka auta
+          - `car_model` - model auta
+          - `year` - rok výroby
+          - `mileage` - najazdených kilometrov
+          - `price` - cena
+          - `image_url` - url náhľadového obrázka
+
+        Stránkovanie bude fungovať na základe GET parametrov `page` , kde štandardný 
+        počet záznamov na stránku bude 10.
+        
+        
+        `GET /api/autobazar/cars/?page=1` je ekvivalentné s `GET /api/autobazar/cars` a vráti 10 najnovších inzerátov. 
+        
+        
+        
+        Inzeráty je možné zoradiť pomocou GET parametra `order_type` od najnovších alebo od najstarších inzerátov.
+        
+        
+        Príklad: `GET /api/autobazar/cars/?order_type=desc` vráti výsledky on najnovšieho po najstarší.
+        
+        
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: Číslo žiadanej stránky (adresované od 1)
+          schema:
+            type: number
+        - name: order_type
+          in: query
+          required: false
+          description: Zoradenie výsledkov
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+      responses:
+        '200':
+          description: Pole najnovších inzerátov
+          content:
+            application/json:
+              schema: 
+                type: object
+    post:
+      tags:
+      - "Ukladanie inzerátu do DB"
+      summary: Vytvorí nový záznam inzerátu v databáze
+      description: >
+        Metódou **POST** na endpoint`POST /api/autobazar/cars`, sa vytvorí nový záznam do tabuľky 
+        Metóda validuje tieto hodnoty:
+
+          - `car_brand` - značka auta
+          - `car_model` - model auta
+          - `year` - rok výroby
+          - `mileage` - najazdených kilometrov
+          - `price` - cena
+          - `image_url` - url náhľadového obrázka
+          - `image_photos` - pole url adries obrázkov
+          - `body` - typ karosérie
+          - `doors` - počet dverí
+          - `power` - výkon auta
+          - `engine_cap` - objem motora
+          - `description` - popis inzerátu
+
+
+        Systém automaticky doplní správne do hodnoty `created_at` dátum vytvorenia inzerátu. 
+        
+        V prípade úspešného zapísania vracia metóda HTTP status kód 201 Created a detaily inzerátu.
+        
+        
+        V prípade validačnej chyby vracia metóda chybu s HTTP status kódom 422
+      responses:
+        '201':
+          description: Detail vytvoreného záznamu
+          content:
+            application/json:
+              schema: 
+                type: object
+        '422':
+          description: Detaily validačnej chyby
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      properties:
+                        field:
+                          type: string
+                        reasons:
+                          type: array
+                    example:
+                      - field: car_model
+                        reasons: [not_string]
+                      - field: price
+                        reasons: [not_number]
+
+  /api/autobazar/cars/{id}:
+    get:
+      tags:
+        - "Obsah inzerátu"
+      summary: Vráti údaje o inzeráte
+      description: >
+        Endpoint `GET /api/autobazar/cars/:id` vracia záznam inzerátu vo formáte JSON. Záznam obsahuje tieto atribúty:
+  
+          - `id` - unikátne identifikátor inzerátu
+          - `car_brand` - značka auta
+          - `car_model` - model auta
+          - `year` - rok výroby
+          - `mileage` - najazdených kilometrov
+          - `price` - cena
+          - `image_url` - url náhľadového obrázka
+          - `image_photos` - pole url adries obrázkov
+          - `body` - typ karosérie
+          - `doors` - počet dverí
+          - `power` - výkon auta
+          - `engine_cap` - objem motora
+          - `description` - popis inzerátu
+        
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: unikátny identifikátor inzerátu
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Pole najnovších inzerátov
+          content:
+            application/json:
+              schema: 
+                type: object
+        '404':
+          description: Inzerát neexistuje
+          content:
+            application/json:
+              schema: 
+                type: object
+    delete:
+      tags:
+        - "Odstránenie inzerátu"
+      summary: Odstránen inzerát z databázy
+      description: >
+        Metóda `DELETE /api/autobazar/cars/:id`, kde :id je id inzerátu na zmazanie zmaže inzerát z databázy. 
+        
+        
+        V prípade že záznam v databáze neexistuje vracia metóda kód 404 a ak sa záznam podarilo zmazať tak kód 200
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Identifikátor inzerátu
+      responses:
+        '200':
+          description: V prípade úspešného zmazania nevracia žiadny obsah
+        '404':
+          description: Inzerát so zadaným ID sa nenachádza v databáze
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties: 
+                  error:
+                    type: object
+                    example: 
+                      message: "Inzerát neexistuje"
+    put:
+      tags:
+        - "Úprava inzerátu"
+      summary: Upraví údaje o inzeráte
+      description: >
+        Endpoint `PUT /api/autobazar/cars/:id` upravuje záznam inzerátu. Telo požiadavky obsahuje rovnaké atribúty ako pri metóde POST, s tým že ak užívateľ upravuje len jeden atribút, stačí keď sa v tele požiadavky nachádza len práve upravovaný atribút.
+  
+          - `id` - unikátne identifikátor inzerátu
+          - `car_brand` - značka auta
+          - `car_model` - model auta
+          - `year` - rok výroby
+          - `mileage` - najazdených kilometrov
+          - `price` - cena
+          - `image_url` - url náhľadového obrázka
+          - `image_photos` - pole url adries obrázkov
+          - `body` - typ karosérie
+          - `doors` - počet dverí
+          - `power` - výkon auta
+          - `engine_cap` - objem motora
+          - `description` - popis inzerátu
+            
+          Ak je inzerát úspešne upravený v tele odozvy sa vráti atribút s upravenou hodnotou a kódom 200. Ak sa inzerát nenájde vrati sa kód 404.
+        
+          
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: unikátny identifikátor inzerátu
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Upravený atribút
+          content:
+            application/json:
+              schema: 
+                type: object
+        '404':
+          description: Inzerát neexistuje
+          content:
+            application/json:
+              schema: 
+                type: object
+  /api/autobazar/users/{id}:
+    get:
+      tags:
+        - "Informácie o užívateľovi"
+      summary: Vráti údaje o prihlásenom užívateľovi
+      description: >
+        Endpoint `GET /api/autobazar/users/:id` vracia údaje o užívateľovi vo formáte JSON. Záznam obsahuje tieto atribúty:
+  
+          - `first_name` - meno užívateľa
+          - `last_name` - meno užívateľa
+          - `phone_number` - telefónne číslo užívateľa
+          - `favourites` - obľúbené inzeráty
+          - `password` - heslo užívateľa
+          - `registered_at` - dátum registrácie
+        
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: unikátny identifikátor užívateľa
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Informácie o užívateľovi
+          content:
+            application/json:
+              schema: 
+                type: object
+        '404':
+          description: Užívateľ neexistuje
+          content:
+            application/json:
+              schema: 
+                type: object
+    
