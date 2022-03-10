@@ -53,10 +53,6 @@ paths:
       responses:
         '200':
           description: Pole najnovších inzerátov
-          content:
-            application/json:
-              schema: 
-                type: object
     post:
       tags:
       - "Ukladanie inzerátu do DB"
@@ -88,30 +84,8 @@ paths:
       responses:
         '201':
           description: Detail vytvoreného záznamu
-          content:
-            application/json:
-              schema: 
-                type: object
         '422':
           description: Detaily validačnej chyby
-          content:
-            application/json:
-              schema: 
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      properties:
-                        field:
-                          type: string
-                        reasons:
-                          type: array
-                    example:
-                      - field: car_model
-                        reasons: [not_string]
-                      - field: price
-                        reasons: [not_number]
 
   /api/autobazar/cars/{id}:
     get:
@@ -145,20 +119,12 @@ paths:
       responses:
         '200':
           description: Pole najnovších inzerátov
-          content:
-            application/json:
-              schema: 
-                type: object
         '404':
           description: Inzerát neexistuje
-          content:
-            application/json:
-              schema: 
-                type: object
     delete:
       tags:
         - "Odstránenie inzerátu"
-      summary: Odstránen inzerát z databázy
+      summary: Odstrání inzerát z databázy
       description: >
         Metóda `DELETE /api/autobazar/cars/:id`, kde :id je id inzerátu na zmazanie zmaže inzerát z databázy. 
         
@@ -176,15 +142,6 @@ paths:
           description: V prípade úspešného zmazania nevracia žiadny obsah
         '404':
           description: Inzerát so zadaným ID sa nenachádza v databáze
-          content:
-            application/json:
-              schema: 
-                type: object
-                properties: 
-                  error:
-                    type: object
-                    example: 
-                      message: "Inzerát neexistuje"
     put:
       tags:
         - "Úprava inzerátu"
@@ -219,16 +176,8 @@ paths:
       responses:
         '200':
           description: Upravený atribút
-          content:
-            application/json:
-              schema: 
-                type: object
         '404':
           description: Inzerát neexistuje
-          content:
-            application/json:
-              schema: 
-                type: object
   /api/autobazar/users/{id}:
     get:
       tags:
@@ -254,14 +203,26 @@ paths:
       responses:
         '200':
           description: Informácie o užívateľovi
-          content:
-            application/json:
-              schema: 
-                type: object
         '404':
           description: Užívateľ neexistuje
-          content:
-            application/json:
-              schema: 
-                type: object
-    
+  /api/autobazar/users/{id}/favourites:
+    get:
+      tags:
+        - "Obľúbené inzeráty"
+      summary: Vráti obľúbené inzeráty podľa užívateľovho ID
+      description: >
+        Endpoint `GET /api/autobazar/users/:id` vracia obľúbené inzeráty podľa užívateľského ID vo formáte JSON. Záznam obsahuje pole ID záznamov:
+  
+          - `favourites` - pole s ID obľúbených inzerátov
+        
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: unikátny identifikátor užívateľa
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Obľúbené inzeráty užívateľa
+
